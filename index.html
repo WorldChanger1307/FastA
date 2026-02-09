@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Quiz Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Setup Section */
+        .setup-section {
+            text-align: center;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .api-help {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .api-help a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .api-help a:hover {
+            text-decoration: underline;
+        }
+
+        /* Course Selection */
+        .course-selection {
+            margin-bottom: 20px;
+        }
+
+        .course-selection label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .course-selection select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .course-selection select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .question-count {
+            margin-bottom: 20px;
+        }
+
+        .question-count label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .question-count input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .question-count input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Quiz Section */
+        .quiz-section {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 4px;
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-button {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option-button:hover:not(:disabled) {
+            border-color: #667eea;
+            background: #f9f9ff;
+        }
+
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-button.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .option-button.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Results Section */
+        .results-section {
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .results-details {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* Buttons */
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .score-display {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Study Quiz Generator</h1>
+            <p>Master your courses</p>
+        </div>
+
+        <div class="content">
+            <!-- Setup Section -->
+            <div class="section active setup-section" id="setupSection">
+                <h2 style="margin-bottom: 20px; font-size: 20px; color: #333;">Get Started</h2>
+                <div class="api-help">
+                    <strong>Need an API key?</strong><br>
+                    1. Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+                    2. Sign up (free) or log in<br>
+                    3. Create API key in settings<br>
+                    4. Paste it below
+                </div>
+                <input 
+                    type="password" 
+                    class="api-key-input" 
+                    id="apiKey" 
+                    placeholder="Paste your API key here"
+                >
+                <button class="btn-primary" onclick="setupApiKey()">Continue</button>
+                <div style="margin-top: 15px; font-size: 12px; color: #999;">
+                    Your API key is stored only in your browser, never shared.
+                </div>
+            </div>
+
+            <!-- Course Selection Section -->
+            <div class="section" id="courseSection">
+                <h2 style="margin-bottom: 20px; font-size: 20px; color: #333;">Select Your Course</h2>
+                
+                <div class="course-selection">
+                    <label for="courseSelect">Choose a course:</label>
+                    <select id="courseSelect">
+                        <option value="">-- Select a course --</option>
+                    </select>
+                </div>
+
+                <div class="question-count">
+                    <label for="numQuestions">Number of questions:</label>
+                    <input 
+                        type="number" 
+                        id="numQuestions" 
+                        min="1" 
+                        max="20" 
+                        value="5"
+                    >
+                </div>
+
+                <button class="btn-primary" onclick="generateQuestions()" id="generateBtn">Generate Questions</button>
+                <button class="btn-secondary" onclick="logout()">Change API Key</button>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="section quiz-section" id="quizSection">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="section results-section" id="resultsSection">
+                <h2 style="margin-bottom: 20px; font-size: 20px; color: #333;">Quiz Complete!</h2>
+                <div class="score-display" id="scoreDisplay"></div>
+                <div class="score-label">out of <span id="totalQuestions"></span> correct</div>
+                <div class="results-details" id="resultsDetails"></div>
+                <button class="btn-primary" onclick="goToCourseSelection()">Try Another Course</button>
+                <button class="btn-secondary" onclick="logout()">Change API Key</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== COURSE MATERIALS =====
+        const courses = {
+            'calculus1': {
+                name: 'Calculus I',
+                material: `
+                    LIMITS AND CONTINUITY:
+                    - The concept of limit: lim(x→a) f(x) = L means you can make f(x) as close as you want to L by choosing x close enough to (but not equal to) a
+                    - A limit can exist even if f(a) is not defined or if f(a) does not equal the limit
+                    - Average rate of change is found by taking a quotient (slope of secant line)
+                    - Instantaneous rate of change at a point requires finding the limit of slopes of secant lines over shorter and shorter intervals
+                    - The slope of the tangent line at x = a is the limit of slopes of secant lines as the interval shrinks
+                    - Infinite limits: lim(x→a) f(x) = ∞ means you can make f(x) as large as you want by choosing x close enough to a
+                    - One-sided limits: lim(x→a+) f(x) restricts attention to x > a, and lim(x→a-) f(x) restricts to x < a
+                    - If f has an infinite limit at x = a, then f has a vertical asymptote at x = a
+                    - Important limit: lim(x→0) sin(x)/x = 1
+                    
+                    INVERSE FUNCTIONS AND LOGARITHMS:
+                    - A function is one-to-one if different inputs give different outputs (must be increasing or decreasing on its domain)
+                    - If f is one-to-one with domain D and range E, then f has an inverse function g with domain E and range D
+                    - The inverse function notation: f^(-1) is such that g(f(x)) = x and f(g(y)) = y
+                    - The graph of f^(-1) is the reflection of the graph of f in the line y = x
+                    - For a > 1, the exponential function f(x) = a^x is increasing with domain (-∞, ∞) and range (0, ∞)
+                    - The logarithm loga(x) is the inverse of the exponential function a^x
+                    - loga(1) = 0 (since a^0 = 1) and loga(a) = 1 (since a^1 = a)
+                    - In general: loga(x) = y exactly when x = a^y
+                    - Exponential property: a^(loga(x)) = x for all x > 0, and loga(a^x) = x for all x
+                    - Logarithm properties: loga(xy) = loga(x) + loga(y), loga(1/x) = -loga(x), loga(x^r) = r·loga(x)
+                    - The number e (approximately 2.718) is special: the tangent line to e^x at x = 0 has slope 1
+                    - The natural logarithm ln(x) is the inverse of e^x
+                    - Change of base formula: loga(x) = ln(x)/ln(a)
+                    
+                    FUNCTION COMBINATIONS AND COMPOSITION:
+                    - Sum: (f + g)(x) = f(x) + g(x)
+                    - Difference: (f - g)(x) = f(x) - g(x)
+                    - Product: (f·g)(x) = f(x)·g(x)
+                    - Quotient: (f/g)(x) = f(x)/g(x) if g(x) ≠ 0
+                    - Composition: (f ∘ g)(x) = f(g(x)), read as "f circle g"
+                    - The domain of a composition is restricted to where g is defined and where f(g(x)) is defined
+                    
+                    EXPONENTIAL AND LOGARITHMIC FUNCTIONS:
+                    - Exponential functions f(x) = a^x are defined for all real x (where a > 0)
+                    - Exponentiation rules: a^(x+y) = a^x·a^y, a^(x-y) = a^x/a^y, (a^x)^y = a^(xy), (ab)^x = a^x·b^x
+                    - For f(x) = a^x: f(x+k) = a^(x+k) = a^x·a^k = a^k·f(x)
+                    - If x is increased by k, then f(x) is multiplied by constant C = a^k
+                    - Exponential growth occurs when a > 1 (C > 1)
+                    - Exponential decay occurs when 0 < a < 1 (C < 1)
+                    - Exponential functions model bacteria growth, radioactive decay, and other real-world processes
+                    - For rational powers p/q: a^(p/q) = (q-th root of a) raised to the p-th power
+                    - Irrational exponents are defined by approximating with rational numbers
+                    
+                    TRIGONOMETRIC FUNCTIONS:
+                    - Angles are measured in radians
+                    - sin(x) is an odd function: sin(-x) = -sin(x)
+                    - cos(x) is an even function: cos(-x) = cos(x)
+                    - tan(x) = sin(x)/cos(x)
+                    - sin(θ) and cos(θ) are defined using the unit circle
+                    - Key values: sin(π/4) = √2/2, cos(π/4) = √2/2, sin(π/6) = 1/2, cos(π/6) = √3/2
+                    - Inverse sine function arcsin maps [-1, 1] to [-π/2, π/2]
+                    - Inverse tangent function arctan maps all real numbers to (-π/2, π/2)
+                    - The domain of sin(√x) is all x ≥ 0 because x must be non-negative under the square root
+                `
+            }
+        };
+
+        // ===== APP STATE =====
+        let apiKey = localStorage.getItem('apiKey');
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = [];
+
+        // ===== INITIALIZATION =====
+        function initializeCourses() {
+            const select = document.getElementById('courseSelect');
+            Object.keys(courses).forEach(courseId => {
+                const option = document.createElement('option');
+                option.value = courseId;
+                option.textContent = courses[courseId].name;
+                select.appendChild(option);
+            });
+        }
+
+        function setupApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (!key) {
+                alert('Please paste your API key');
+                return;
+            }
+            localStorage.setItem('apiKey', key);
+            apiKey = key;
+            showSection('courseSection');
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        async function generateQuestions() {
+            const courseId = document.getElementById('courseSelect').value;
+            const numQuestions = parseInt(document.getElementById('numQuestions').value);
+
+            if (!courseId) {
+                alert('Please select a course');
+                return;
+            }
+
+            if (numQuestions < 1 || numQuestions > 20) {
+                alert('Please enter between 1 and 20 questions');
+                return;
+            }
+
+            const material = courses[courseId].material;
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').textContent = 'Generating...';
+
+            try {
+                // Call the Netlify backend function instead of the API directly
+                const response = await fetch('/.netlify/functions/generate-questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        material: material,
+                        numQuestions: numQuestions,
+                        apiKey: apiKey
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate questions');
+                }
+
+                const data = await response.json();
+                currentQuestions = data.questions;
+                currentQuestionIndex = 0;
+                score = 0;
+                answered = new Array(currentQuestions.length).fill(null);
+
+                showQuestion();
+                showSection('quizSection');
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error(error);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtn').textContent = 'Generate Questions';
+            }
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= currentQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = currentQuestions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`;
+            document.getElementById('questionText').textContent = q.question;
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectAnswer(index) {
+            const q = currentQuestions[currentQuestionIndex];
+            answered[currentQuestionIndex] = index;
+
+            const buttons = document.querySelectorAll('.option-button');
+            buttons.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct');
+                } else if (i === index && i !== q.correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            if (index === q.correct) {
+                score++;
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 1500);
+        }
+
+        function showResults() {
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('totalQuestions').textContent = currentQuestions.length;
+
+            const percentage = Math.round((score / currentQuestions.length) * 100);
+            const details = `
+                <strong>Score:</strong> ${score}/${currentQuestions.length}<br>
+                <strong>Percentage:</strong> ${percentage}%<br>
+                <strong>Performance:</strong> ${getPerformanceLabel(percentage)}
+            `;
+            document.getElementById('resultsDetails').innerHTML = details;
+
+            showSection('resultsSection');
+        }
+
+        function getPerformanceLabel(percentage) {
+            if (percentage >= 90) return '🌟 Outstanding!';
+            if (percentage >= 80) return '✅ Great job!';
+            if (percentage >= 70) return '👍 Good work!';
+            if (percentage >= 60) return '📚 Keep studying!';
+            return '💪 More practice needed!';
+        }
+
+        function goToCourseSelection() {
+            document.getElementById('courseSelect').value = '';
+            showSection('courseSection');
+        }
+
+        function logout() {
+            localStorage.removeItem('apiKey');
+            apiKey = null;
+            document.getElementById('apiKey').value = '';
+            showSection('setupSection');
+        }
+
+        // ===== RUN ON PAGE LOAD =====
+        initializeCourses();
+        if (apiKey) {
+            showSection('courseSection');
+        }
+    </script>
+</body>
+</html>
