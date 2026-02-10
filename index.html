@@ -290,19 +290,23 @@
                 </select>
             </div>
             
-            <button onclick="startQuiz()">Start Quiz</button>
+           <button onclick="startQuiz()">Start Quiz</button>
             
             <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
-                <label style="margin-bottom: 15px;">📥 Download for Offline Use:</label>
-                <p style="color: #666; font-size: 0.9em; margin-bottom: 15px; font-weight: normal;">
-                    Download a subject to practice without internet connection
-                </p>
-                <button onclick="downloadOfflineVersion('java')" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); margin-bottom: 10px;">
-                    Download Java Course
-                </button>
-                <button onclick="downloadOfflineVersion('calculus')" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);">
-                    Download Calculus Course
-                </button>
+                <div class="subject-selection">
+                    <label for="downloadSubject">📥 Download for Offline Use:</label>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px; font-weight: normal;">
+                        Download a subject to practice without internet connection
+                    </p>
+                    <select id="downloadSubject">
+                        <option value="">-- Select Subject to Download --</option>
+                        <option value="java">Java (COMS 1004)</option>
+                        <option value="calculus">Calculus I</option>
+                    </select>
+                    <button onclick="handleDownload()" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); margin-top: 15px;">
+                        Download Selected Course
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -527,7 +531,16 @@
             updateStats();
             displayNextQuestion();
         }
+function handleDownload() {
+            const subject = document.getElementById('downloadSubject').value;
+            if (!subject) {
+                alert('Please select a subject to download first!');
+                return;
+            }
+            downloadOfflineVersion(subject);
+        }
 
+        function downloadOfflineVersion(subject) {
         function downloadOfflineVersion(subject) {
             const subjectName = subject === 'java' ? 'Java' : 'Calculus';
             const questions = window.QUESTIONS[subject];
