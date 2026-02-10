@@ -767,20 +767,6 @@ function handleDownload() {
     </script>
 </body>
 </html>`;
-
-            // Create download link
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${subjectName.toLowerCase()}-quiz-offline.html`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            alert(`✅ ${subjectName} quiz downloaded! Open the HTML file in any browser to practice offline.`);
-        }
     </script>
 </body>
 </html>
